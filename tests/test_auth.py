@@ -2,7 +2,7 @@ import requests
 
 URL = "http://localhost:5000/login"
 USERNAME = "admin"
-PASSWORD_LIST = ["12345", "admin123", "password", "qwerty"]
+PASSWORD_LIST = ["12345", "admin123", "password", "qwerty", "letmein", "123456"]
 
 for password in PASSWORD_LIST:
     response = requests.post(URL, data={"username": USERNAME, "password": password})
