@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
 import os
+from app.fake_dependency import vulnerable_function
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Lỗ hổng: Secret key không an toàn
@@ -99,6 +100,10 @@ def upload_file():
         return {"message": "File uploaded successfully", "filename": file.filename}, 200
     else:
         return redirect(url_for("home"))
+    
+@app.route("/vulnerable-dependency")
+def test_dependency():
+    return vulnerable_function()
 
 @app.route("/logout")
 def logout():
