@@ -3,15 +3,17 @@
 Web demo: Tạo ứng dụng Flask đơn giản với các chức năng như đăng nhập, đăng ký, quản lý mật khẩu, tải file (biểu hiện lỗ hổng OWASP 7 và 8).
 
 ## Chạy ứng dụng cục bộ
+Chưa làm được chạy ứng dụng trên Docker, nên hiện tại các công việc xây dựng và kiểm thử sẽ tiến hành cục bộ. 
 
-## Lỗ hổng cụ thể (OWASP 7, 8)
+## Các lỗ hổng sẽ được kiểm thử và phòng chống trong nội dung bài tập
 ### OWASP 7:
-Không giới hạn số lần đăng nhập sai.
-Session không được bảo mật.
-Không mã hóa dữ liệu đăng nhập.
+1. Không giới hạn số lần đăng nhập sai.
+2. Không mã hóa dữ liệu đăng nhập.
+3. Session không được bảo mật.
 ### OWASP 8:
-Thư viện không được kiểm tra tính toàn vẹn.
-Xử lý file tải lên không an toàn.
+4. Xử lý file tải lên không an toàn.
+5. Thư viện không được kiểm tra tính toàn vẹn.
+6. Injection thông qua các dependency không đáng tin.
 
 ## Test bảo mật với dữ liệu test
 Viết script và hướng dẫn kiểm thử.
@@ -27,14 +29,14 @@ pip install -r requirements.txt
 python run.py
 
 ## Tiến hành test
-### Kiểm thử brute-force (OWASP 7)
+### 1.Kiểm thử brute-force (OWASP 7)
 python tests/test_auth.py
 
 Kết quả mong đợi: Script có thể tìm được mật khẩu hợp lệ do không giới hạn số lần thử.
 
-### Kiểm thử lưu mật khẩu dạng plain-text (OWASP 7)
+### 2.Kiểm thử lưu mật khẩu dạng plain-text (OWASP 7)
 
-### Kiểm thử bảo mật phiên
+### 3.Kiểm thử bảo mật phiên (OWASP 7)
 Session không an toàn
 app.config["SESSION_COOKIE_SECURE"] = False
 app.config["SESSION_COOKIE_HTTPONLY"] = False
@@ -47,7 +49,7 @@ app.config["SESSION_COOKIE_SECURE"] = True  # Chỉ gửi cookie qua HTTPS
 app.config["SESSION_COOKIE_HTTPONLY"] = True  # Chặn JavaScript truy cập cookie
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Giảm nguy cơ cross-site attack
 
-### Kiểm thử upload file không an toàn (OWASP 8)
+### 4.Kiểm thử upload file không an toàn (OWASP 8)
 Sử dụng Git Bash:
 curl -X POST -F "file=@malicious.py" http://localhost:5000/upload
 
@@ -55,7 +57,7 @@ Kết quả mong đợi: File không được kiểm tra trước khi lưu, dễ
 
 Kiểm tra qua giao diện Home
 
-### Thư viện không được kiểm tra tính toàn vẹn (OWASP 8)
+### 5.Thư viện không được kiểm tra tính toàn vẹn (OWASP 8)
 Mô phỏng: Thêm một thư viện bên ngoài không đáng tin cậy, như:
 pip install some-untrusted-package
 
@@ -74,12 +76,11 @@ Thay vào đó, khóa phiên bản cụ thể trong requirements.txt
 flask==2.0.3
 werkzeug==2.0.3
 
-### Kiểm thử Dependency Injection (Injection thông qua dependency không đáng tin) (OWASP 8)
+### 6.Kiểm thử Dependency Injection (Injection thông qua dependency không đáng tin) (OWASP 8)
 fake_dependency.py
 
 Gọi file trong ứng dụng Flask
 from fake_dependency import vulnerable_function
 
-(Không cần chạy:
-docker build -t flask-demo .
+(docker build -t flask-demo .
 docker run -p 5000:5000 flask-demo)

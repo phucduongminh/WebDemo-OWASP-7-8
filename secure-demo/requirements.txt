@@ -1,0 +1,6 @@
+flask
+werkzeug
+requests
+flask-limiter
+bcrypt
+sqlite3
