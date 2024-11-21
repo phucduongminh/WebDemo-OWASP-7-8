@@ -34,7 +34,13 @@ python tests/test_auth.py
 
 Kết quả mong đợi: Script có thể tìm được mật khẩu hợp lệ do không giới hạn số lần thử.
 
+Cách xử lý
+Thêm limit
+@limiter.limit("5 per minute")  # Giới hạn 5 lần đăng nhập mỗi phút
+Nếu nhập sai 5 lần thì sẽ bị khóa trong 1 phút
+
 ### 2.Kiểm thử lưu mật khẩu dạng plain-text (OWASP 7)
+Hash mật khẩu
 
 ### 3.Kiểm thử bảo mật phiên (OWASP 7)
 Session không an toàn
@@ -48,6 +54,8 @@ Thêm config
 app.config["SESSION_COOKIE_SECURE"] = True  # Chỉ gửi cookie qua HTTPS
 app.config["SESSION_COOKIE_HTTPONLY"] = True  # Chặn JavaScript truy cập cookie
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Giảm nguy cơ cross-site attack
+
+Xóa hết session sau khi logout
 
 ### 4.Kiểm thử upload file không an toàn (OWASP 8)
 Sử dụng Git Bash:

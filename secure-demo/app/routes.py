@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request, session, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 from app.fake_dependency import vulnerable_function
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Lỗ hổng: Secret key không an toàn
+limiter = Limiter(get_remote_address, app=app)
 
 DATABASE = "app.db"
 UPLOAD_FOLDER = "./uploads"
@@ -27,7 +31,7 @@ def init_db():
 def register():
     if request.method == "POST":
         username = request.form["username"]
-        password = request.form["password"]  # Lỗ hổng: Lưu mật khẩu không mã hóa
+        password = generate_password_hash(request.form["password"]) # Đã mã hóa
         try:
             conn = sqlite3.connect(DATABASE)
             cursor = conn.cursor()
@@ -41,6 +45,7 @@ def register():
     return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute") # Giới hạn 5 lần đăng nhập mỗi phút
 def login():
     if request.method == "POST":
         username = request.form["username"]
@@ -50,7 +55,7 @@ def login():
         cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
         user = cursor.fetchone()  # Trả về tuple hoặc None
         conn.close()
-        if user and user[0] == password:  # So sánh mật khẩu dạng plain-text
+        if user and check_password_hash(user[0], password):  # So sánh mật khẩu dạng plain-text
             session["username"] = username
             return redirect(url_for("home"))
         return "Invalid credentials", 401
@@ -107,11 +112,10 @@ def test_dependency():
 
 @app.route("/logout")
 def logout():
-    # Không hủy toàn bộ session
-    session.pop("username", None)  # Lỗ hổng: Session ID vẫn tồn tại
+    session.clear()  # Xóa toàn bộ session
     return redirect(url_for("home"))
 
-app.config["SESSION_COOKIE_SECURE"] = False  # Chỉ gửi cookie qua HTTPS
-app.config["SESSION_COOKIE_HTTPONLY"] = False  # Chặn JavaScript truy cập cookie
-# app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Giảm nguy cơ cross-site attack
+app.config["SESSION_COOKIE_SECURE"] = True  # Chỉ gửi cookie qua HTTPS
+app.config["SESSION_COOKIE_HTTPONLY"] = True  # Chặn JavaScript truy cập cookie
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # Giảm nguy cơ cross-site attack
 
