@@ -7,7 +7,28 @@
 </head>
 <body>
     <h1>Welcome, {{ user if user else 'Guest' }}</h1>
+
     {% if user %}
+        <!-- Form Upload -->
+        <form action="/" method="POST" enctype="multipart/form-data">
+            <label for="file">Upload File:</label>
+            <input type="file" id="file" name="file" required>
+            <button type="submit">Upload</button>
+        </form>
+
+        <!-- Hiển thị thông báo kết quả -->
+        {% if message %}
+            <p><strong>{{ message }}</strong></p>
+        {% endif %}
+
+        <!-- Danh sách file đã upload -->
+        <h2>Uploaded Files:</h2>
+        <ul>
+            {% for file in files %}
+                <li>{{ file }}</li>
+            {% endfor %}
+        </ul>
+
         <a href="/logout">Logout</a>
     {% else %}
         <a href="/login">Login</a> | <a href="/register">Register</a>

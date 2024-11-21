@@ -1,10 +1,13 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
+import os
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Lỗ hổng: Secret key không an toàn
 
 DATABASE = "app.db"
+UPLOAD_FOLDER = "./uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 def init_db():
     conn = sqlite3.connect(DATABASE)
@@ -52,20 +55,50 @@ def login():
         return "Invalid credentials", 401
     return render_template("login.html")
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template("home.html", user=session.get("username"))
+    files = os.listdir(app.config["UPLOAD_FOLDER"]) if os.path.exists(app.config["UPLOAD_FOLDER"]) else []
+    message = None  # Thông báo kết quả upload
+
+    if request.method == "POST":
+        # Xử lý upload file
+        if "file" not in request.files:
+            message = "No file uploaded"
+        else:
+            file = request.files["file"]
+            if file.filename == "":
+                message = "No selected file"
+            else:
+                if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+                    os.makedirs(app.config["UPLOAD_FOLDER"])
+                
+                filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+                file.save(filepath)
+                message = f"File '{file.filename}' uploaded successfully"
+
+        # Lấy danh sách file lại sau upload
+        files = os.listdir(app.config["UPLOAD_FOLDER"])
+
+    return render_template("home.html", user=session.get("username"), files=files, message=message)
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
     if "file" not in request.files:
-        return "No file uploaded", 400
+        return {"error": "No file uploaded"}, 400 if request.accept_mimetypes["application/json"] else "No file uploaded", 400
     file = request.files["file"]
     if file.filename == "":
-        return "No selected file", 400
-    filepath = f"./uploads/{file.filename}"  # Lỗ hổng: Không kiểm tra loại file hoặc path traversal
+        return {"error": "No selected file"}, 400 if request.accept_mimetypes["application/json"] else "No selected file", 400
+
+    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+        os.makedirs(app.config["UPLOAD_FOLDER"])
+    
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
     file.save(filepath)
-    return f"File uploaded to {filepath}"
+
+    if request.accept_mimetypes["application/json"]:
+        return {"message": "File uploaded successfully", "filename": file.filename}, 200
+    else:
+        return redirect(url_for("home"))
 
 @app.route("/logout")
 def logout():
