@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
-from app.fake_dependency import vulnerable_function
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -105,10 +104,6 @@ def upload_file():
         return {"message": "File uploaded successfully", "filename": file.filename}, 200
     else:
         return redirect(url_for("home"))
-    
-@app.route("/vulnerable-dependency")
-def test_dependency():
-    return vulnerable_function()
 
 @app.route("/logout")
 def logout():

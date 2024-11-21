@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 import sqlite3
 import os
-from app.fake_dependency import vulnerable_function
+from fake_dependency.vulnerable_function import vulnerable_function
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Lỗ hổng: Secret key không an toàn

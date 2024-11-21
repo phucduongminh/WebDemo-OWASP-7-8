@@ -4,3 +4,4 @@ requests
 flask-limiter
 bcrypt
 sqlite3
+fake_dependency==0.1

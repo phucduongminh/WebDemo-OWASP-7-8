@@ -85,10 +85,25 @@ flask==2.0.3
 werkzeug==2.0.3
 
 ### 6.Kiểm thử Dependency Injection (Injection thông qua dependency không đáng tin) (OWASP 8)
-fake_dependency.py
+Cài đặt fake_dependency vào môi trường:
+cd fake_dependency
+pip install .
 
-Gọi file trong ứng dụng Flask
-from fake_dependency import vulnerable_function
+Sử dụng
+@app.route("/vulnerable-dependency")
+def test_dependency():
+    from fake_dependency.vulnerable_function import vulnerable_function
+    return vulnerable_function()
+
+Giải pháp
+Dùng flag --only-binary :all: khi cài đặt để hạn chế cài đặt từ mã nguồn
+pip install fake_dependency --only-binary :all:
+
+Dùng pip-audit
+Kết quả
+Name            Skip Reason
+--------------- ----------------------------------------------------------------------------
+fake-dependency Dependency not found on PyPI and could not be audited: fake-dependency (0.1)
 
 (docker build -t flask-demo .
 docker run -p 5000:5000 flask-demo)
