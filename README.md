@@ -65,6 +65,20 @@ Kết quả mong đợi: File không được kiểm tra trước khi lưu, dễ
 
 Kiểm tra qua giao diện Home
 
+Giải pháp
+Kiểm tra loại file được tải lên:
+Chỉ cho phép các loại file hợp lệ dựa trên phần mở rộng (.txt, .jpg, .png, v.v.).
+Kiểm tra MIME type của file để xác minh loại file thực sự.
+
+Ngăn tấn công path traversal:
+Ngăn người dùng tải file lên thư mục không mong muốn bằng cách lọc đường dẫn file.
+
+Tạo tên file an toàn:
+Sử dụng werkzeug.utils.secure_filename để đảm bảo tên file không chứa ký tự nguy hiểm.
+
+Giới hạn kích thước file:
+Chặn file quá lớn để tránh tấn công từ chối dịch vụ (DoS).
+
 ### 5.Thư viện không được kiểm tra tính toàn vẹn (OWASP 8)
 Mô phỏng: Thêm một thư viện bên ngoài không đáng tin cậy, như:
 pip install some-untrusted-package
