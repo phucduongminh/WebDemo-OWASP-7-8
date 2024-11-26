@@ -156,7 +156,7 @@ def upload_file():
 
 @app.route("/logout")
 def logout():
-    session.clear()
+    session.clear() # Đã clear session sau khi logout
     return redirect(url_for("home"))
 
 # Cấu hình bảo mật cookie

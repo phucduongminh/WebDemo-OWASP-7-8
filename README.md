@@ -42,12 +42,18 @@ Nếu nhập sai 5 lần thì sẽ bị khóa trong 1 phút
 ### 2.Kiểm thử lưu mật khẩu dạng plain-text (OWASP 7)
 Hash mật khẩu
 
+Sử dụng
+from werkzeug.security import generate_password_hash, check_password_hash
+
 ### 3.Kiểm thử bảo mật phiên (OWASP 7)
 Session không an toàn
 app.config["SESSION_COOKIE_SECURE"] = False
 app.config["SESSION_COOKIE_HTTPONLY"] = False
-Kẻ gian có thể dễ dàng viết Javascript xem phiên, ví dụ:
+Kẻ gian có thể dễ dàng viết Javascript xem phiên, ví dụ vào Console trên Web Browser:
 console.log(document.cookie);
+
+Session bị lộ hết.
+Sau đó, log out chưa xóa toàn bộ session.
 
 Cách xử lý
 Thêm config
@@ -63,7 +69,9 @@ curl -X POST -F "file=@malicious.py" http://localhost:5000/upload
 
 Kết quả mong đợi: File không được kiểm tra trước khi lưu, dễ bị tấn công thông qua file độc hại hoặc path traversal.
 
-Kiểm tra qua giao diện Home
+Kiểm tra qua giao diện Home.
+
+Tải được cả file .exe lên
 
 Giải pháp
 Kiểm tra loại file được tải lên:
