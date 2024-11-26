@@ -12,7 +12,6 @@ app.secret_key = "supersecretkey"
 limiter = Limiter(get_remote_address, app=app)
 
 DATABASE = "app.db"
-UPLOAD_FOLDER = "./uploads"
 
 # Cấu hình loại file cho phép và kích thước tối đa
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'}
@@ -31,6 +30,7 @@ ALLOWED_MIME_TYPES = {
 MAX_CONTENT_LENGTH = 30 * 1024 * 1024  # 30 MB
 
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+UPLOAD_FOLDER = "./uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 def init_db():
@@ -46,6 +46,39 @@ def init_db():
     conn.commit()
     conn.close()
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = generate_password_hash(request.form["password"]) # Đã mã hóa
+        try:
+            conn = sqlite3.connect(DATABASE)
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            return "Username already exists", 400
+        finally:
+            conn.close()
+        return redirect(url_for("login"))
+    return render_template("register.html")
+@app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute") # Giới hạn 5 lần đăng nhập mỗi phút
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+        cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
+        user = cursor.fetchone()  # Trả về tuple hoặc None
+        conn.close()
+        if user and check_password_hash(user[0], password):  # So sánh mật khẩu dạng plain-text
+            session["username"] = username
+            return redirect(url_for("home"))
+        return "Invalid credentials", 401
+    return render_template("login.html")
+
 def allowed_file(filename):
     # Kiểm tra phần mở rộng của file
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -58,7 +91,12 @@ def allowed_mime_type(file_stream):
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    files = os.listdir(app.config["UPLOAD_FOLDER"]) if os.path.exists(app.config["UPLOAD_FOLDER"]) else []
+    # Ensure the upload folder exists before listing files
+    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
+        os.makedirs(app.config["UPLOAD_FOLDER"])
+    
+    files = os.listdir(app.config["UPLOAD_FOLDER"])
+
     message = None  # Thông báo kết quả upload
 
     if request.method == "POST":
@@ -81,8 +119,6 @@ def home():
                     file.stream.seek(0)
                     filename = secure_filename(file.filename)
                     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-                    if not os.path.exists(app.config["UPLOAD_FOLDER"]):
-                        os.makedirs(app.config["UPLOAD_FOLDER"])
                     file.save(filepath)
                     message = f"File '{file.filename}' uploaded successfully"
 
